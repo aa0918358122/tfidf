@@ -2,72 +2,52 @@ from os import listdir
 import copy
 import math
 
-#read file
-def read_file(filename):
-    with open(filename, 'r') as article:        #'r' for read , 'w' for write
-        return article.read().rstrip('\n')      #file.read()   #str.rstrip()
-
-#delete the redundant words in articles
+# read file
+def read_file(file):
+    with open(file, 'r') as f:        # 'r' for read , 'w' for write
+        return f.read().rstrip('\n')  # file.read()   #str.rstrip()
 
 if "__main__" == __name__:
-    all_article = listdir('./data/')
+    files = listdir('./data/')
     articles = []
-    set_article = set()
+    char_set = set()
 
-    for article in all_article:
-        path = './data/' + article
-        delete_article = read_file(path)
+    for file in files:
+        article = read_file('./data/' + file)
+
+        # delete the redundant words in articles
         deletion = ['，', '。', '、', '「', '」', ' ','；', '（', '）']
         for char in deletion:
-            delete_article = delete_article.replace(char, '')        #str.replace()
-        articles.append(delete_article)          #list.append()
-        set_article.update(delete_article)       #set.update()
+            article = article.replace(char, '') # str.replace()
 
-    dictionary = dict()                          #dictionary()
-    for i, article in enumerate(articles):       #enumerate()
-        dictionary[i] = dict()
-        for char in set_article:
-            dictionary[i][char] = 0
+        articles.append(article)    # list.append()
+        char_set.update(article)    # set.update()
 
-#count word frequency
+    count_dict = dict()                          # count_dict()
+    for i, article in enumerate(articles):       # enumerate()
+        count_dict[i] = dict()
+        # initialize dict value
+        for char in char_set:
+            count_dict[i][char] = 0
 
+        # count word frequency
         for char in article:
-            dictionary[i][char] += 1
-
-#count total word
-
-        dictionary[i]['total'] = len(article)
-
-        #count = 0
-        #for key in dictionary[i]:
-            #count += dictionary[i][key]
-
-#count tf
-
-    tf_dict = copy.deepcopy(dictionary)
-    for i in range(len(articles)):       #dictionary deep copy
-        for key in tf_dict[i]:
-            tf_dict[i][key] = tf_dict[i][key]/tf_dict[i]['total']
-
-#count idf
+            count_dict[i][char] += 1
 
     idf_dict = dict()
-    for char in set_article:
+    tfidf_dict = copy.deepcopy(count_dict)
+
+    #count idf
+    for char in char_set:
         count = 0
         for i in range(len(articles)):
-            if dictionary[i][char] != 0:
+            if count_dict[i][char]:
                 count += 1
-        idf = math.log((10/count), 10)
-        idf_dict[char] = idf
-        idf_dict['total'] = 0
+        idf_dict[char] = math.log((10/count), 10)
 
-#calculate tf-idf
-
-    tfidf_dict = copy.deepcopy(dictionary)
+    #count tf, tf-idf
     for i in range(len(articles)):
-        for key in tf_dict[i]:
-            tfidf_dict[i][key] = tf_dict[i][key]*idf_dict[key]
+        for char in char_set:
+            tfidf_dict[i][char] = count_dict[i][char] / len(articles[i]) * idf_dict[char]
 
-    # a = [[v[1],v[0]] for v in tfidf_dict[0].items()]
-    # a.sort(reverse=True)
-    # print([ v for v in sorted(tfidf_dict[0].values())] )
+    print(tfidf_dict)
