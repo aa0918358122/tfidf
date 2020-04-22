@@ -10,14 +10,11 @@ from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
 from sklearn.model_selection import cross_val_score
 
 if sys.argv[1] == 'jieba':
-    x = np.load('jieba_politics_x.npy')
-    y = np.load('jieba_politics_y.npy')
+    x = np.load(f'jieba_{sys.argv[2]}_x.npy')
+    y = np.load(f'jieba_{sys.argv[2]}_y.npy')
 elif sys.argv[1] == 'ckiptagger':
-    x = np.load('ckiptagger_politics_x.npy')
-    y = np.load('ckiptagger_politics_y.npy')
-
-# x = np.load(f'{sys.argv[1]}_x.npy')
-# y = np.load(f'{sys.argv[1]}_y.npy')
+    x = np.load(f'ckiptagger_{sys.argv[2]}_x.npy')
+    y = np.load(f'ckiptagger_{sys.argv[2]}_y.npy')
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 0, shuffle = True, stratify = y)
 
