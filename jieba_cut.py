@@ -15,7 +15,7 @@ def read_file(file):
 
 if __name__ == "__main__":
 
-    files = listdir('./data/')
+    numbers = listdir('/home/aa0918358122/git/crawler/articles_politics/')
     corpus = []
     y = []
 
@@ -27,22 +27,24 @@ if __name__ == "__main__":
             stopword_set.add(stopword.strip('\n'))
         stopword_set.add('\n')
 
-    for file in files:
-        y.append(int(file[0]))
-        article = read_file('./data/' + file)
+    for number in numbers:
+        files = listdir(f'/home/aa0918358122/git/crawler/articles_politics/{number}')
+        for file in files:
+            y.append(int(file[0]))
+            article = read_file(f'/home/aa0918358122/git/crawler/articles_politics/{number}/{file}')
 
-        seg_list = jieba.cut(article, cut_all = False)
-        # seg_list = ws([article])[0]
+            if sys.argv[1] == 'jieba':
+                seg_list = jieba.cut(article, cut_all = False)
+            elif sys.argv[1] == 'ckiptagger':
+                seg_list = ws([article])[0]
 
-        res = []
-        for word in seg_list:
-            if word not in stopword_set:
-                res.append(word)
-
-        text = ' '.join(res)
-        corpus.append(text)
-
-    print(corpus)
+            res = []
+            for word in seg_list:
+                if word not in stopword_set:
+                    res.append(word)
+            text = ' '.join(res)
+            corpus.append(text)
+        #print(corpus)
 
     vectorizer = CountVectorizer()
     transformer = TfidfTransformer()
@@ -57,6 +59,6 @@ if __name__ == "__main__":
             e.append(word[j])
         x.append(weight[i])
 
-    np.save('x.npy', np.asarray(x))
-    np.save('y.npy', np.asarray(y))
+    np.save(f'{sys.argv[1]}_politics_x.npy', np.asarray(x))
+    np.save(f'{sys.argv[1]}_politics_y.npy', np.asarray(y))
 
