@@ -15,7 +15,7 @@ def read_file(file):
 
 if __name__ == "__main__":
 
-    numbers = listdir('/home/aa0918358122/git/crawler/articles_politics/')
+    numbers = listdir(f'/home/aa0918358122/git/crawler/articles_{sys.argv[2]}/')
     corpus = []
     y = []
 
@@ -28,10 +28,10 @@ if __name__ == "__main__":
         stopword_set.add('\n')
 
     for number in numbers:
-        files = listdir(f'/home/aa0918358122/git/crawler/articles_politics/{number}')
+        files = listdir(f'/home/aa0918358122/git/crawler/articles_{sys.argv[2]}/{number}')
         for file in files:
             y.append(int(file[0]))
-            article = read_file(f'/home/aa0918358122/git/crawler/articles_politics/{number}/{file}')
+            article = read_file(f'/home/aa0918358122/git/crawler/articles_{sys.argv[2]}/{number}/{file}')
 
             if sys.argv[1] == 'jieba':
                 seg_list = jieba.cut(article, cut_all = False)
@@ -59,6 +59,6 @@ if __name__ == "__main__":
             e.append(word[j])
         x.append(weight[i])
 
-    np.save(f'{sys.argv[1]}_politics_x.npy', np.asarray(x))
-    np.save(f'{sys.argv[1]}_politics_y.npy', np.asarray(y))
+    np.save(f'{sys.argv[1]}_{sys.argv[2]}_x.npy', np.asarray(x))
+    np.save(f'{sys.argv[1]}_{sys.argv[2]}_y.npy', np.asarray(y))
 
