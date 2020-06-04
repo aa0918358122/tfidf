@@ -1,5 +1,10 @@
 import numpy as np
+import seaborn as sn
+import pandas as pd
+import scipy.spatial as sp
+import scipy.cluster.hierarchy as hc
 import sys
+import re
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
@@ -8,19 +13,42 @@ from sklearn.metrics import accuracy_score
 from sklearn import svm
 from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
 from sklearn.model_selection import cross_val_score
+from imblearn.over_sampling import SMOTE
+from sklearn.datasets import load_iris
+
 
 if sys.argv[1] == 'jieba':
     x = np.load(f'jieba_{sys.argv[2]}_x.npy')
     y = np.load(f'jieba_{sys.argv[2]}_y.npy')
+    a = np.load(f'jieba_{sys.argv[2]}_a.npy')
+    topn = np.load(f'jieba_{sys.argv[2]}_topn.npy')
 elif sys.argv[1] == 'ckiptagger':
     x = np.load(f'ckiptagger_{sys.argv[2]}_x.npy')
     y = np.load(f'ckiptagger_{sys.argv[2]}_y.npy')
+    a = np.losd(f'ckiptagger_{sys.argv[2]}_a.npy')
+    topn = np.load(f'ckiptagger_{sys.argv[2]}_topn.npy')
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 0, shuffle = True, stratify = y)
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.5, random_state = 0, shuffle = True, stratify = y)
+
+# oversampling
+#sm = SMOTE(random_state = 12, sampling_strategy = 'not minority')
+#x_train_res, y_train_res = sm.fit_sample(x_train, y_train)
 
 sc = StandardScaler()
+#x_train_res = sc.fit_transform(x_train_res)
 x_train = sc.fit_transform(x_train)
 x_test = sc.transform(x_test)
+
+# draw clustermap
+sn.set(font='monospace')
+iris = load_iris()
+a, topn = iris.data, iris.target
+DF = pd.DataFrame(a, index = ['iris_%d'%(i) for i in range(a.shape[0])], columns = iris.feature_names)
+DF_corr = DF.T.corr()
+DF_dism = 1 - DF_corr
+linkage = hc.linkage(sp.distance.squarefrom(DF_dism), method='average')
+sn.clustermap(DF_dism, row_linkage=linkage, col_linkage=linkage)
+
 
 # GridSearch
 def grid_search():
@@ -58,10 +86,12 @@ def hyperopt():
 
 
 def test():
-    for i in range(10):
-        clf = RandomForestClassifier(n_estimators = 765, random_state = i, max_depth = 37)
+    for i in range(3):
+        clf = RandomForestClassifier(n_estimators = 700, random_state = i, max_depth = 20, class_weight = 'balanced') #class_weight = 'balanced'
         clf.fit(x_train, y_train)
+        #clf.fit(x_train_res, y_train_res)
         y_pred = clf.predict(x_test)
+        #print(confusion_matrix(y_test, y_pred, labels=[1, 2, 3]))
         print(confusion_matrix(y_test, y_pred, labels=[1, 2, 3, 4, 5, 6, 7]))
         print(accuracy_score(y_test, y_pred))
 
@@ -70,4 +100,5 @@ if '__main__' == __name__:
     # grid_search()
     # hyperopt()
     test()
+
 
