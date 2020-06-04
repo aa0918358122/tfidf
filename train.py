@@ -39,17 +39,6 @@ sc = StandardScaler()
 x_train = sc.fit_transform(x_train)
 x_test = sc.transform(x_test)
 
-# draw clustermap
-sn.set(font='monospace')
-iris = load_iris()
-a, topn = iris.data, iris.target
-DF = pd.DataFrame(a, index = ['iris_%d'%(i) for i in range(a.shape[0])], columns = iris.feature_names)
-DF_corr = DF.T.corr()
-DF_dism = 1 - DF_corr
-linkage = hc.linkage(sp.distance.squarefrom(DF_dism), method='average')
-sn.clustermap(DF_dism, row_linkage=linkage, col_linkage=linkage)
-
-
 # GridSearch
 def grid_search():
     grid_1 = {'n_estimators': [100*n for n in range(1, 10)],
@@ -70,7 +59,6 @@ def hyperopt():
     def hyperopt_model(params):
         clf = RandomForestClassifier(**params)
         return cross_val_score(clf, x_train, y_train, cv = 3).mean()
-
     def fn(params):
         global best
         acc = hyperopt_model(params)
@@ -96,9 +84,18 @@ def test():
         print(accuracy_score(y_test, y_pred))
 
 
+def draw_clustermap():
+    sn.set(font='monospace')
+    article_dict = dict()
+    for i in range(len(a)):
+        article_dict[f'{y[i]}'] = pd.Series(a[i], topn)
+    df = pd.DataFrame(article_dict)
+    sn.clustermap(df)
+
+
 if '__main__' == __name__:
     # grid_search()
     # hyperopt()
     test()
-
+    draw_clustermap()
 
