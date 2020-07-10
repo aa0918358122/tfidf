@@ -1,8 +1,6 @@
 import numpy as np
 import seaborn as sn
 import pandas as pd
-import scipy.spatial as sp
-import scipy.cluster.hierarchy as hc
 import sys
 import re
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -14,19 +12,19 @@ from sklearn import svm
 from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
 from sklearn.model_selection import cross_val_score
 from imblearn.over_sampling import SMOTE
-from sklearn.datasets import load_iris
+import pickle
 
 
 if sys.argv[1] == 'jieba':
     x = np.load(f'jieba_{sys.argv[2]}_x.npy')
     y = np.load(f'jieba_{sys.argv[2]}_y.npy')
-    a = np.load(f'jieba_{sys.argv[2]}_a.npy')
-    topn = np.load(f'jieba_{sys.argv[2]}_topn.npy')
+    # a = np.load(f'jieba_{sys.argv[2]}_a.npy')
+    # topn = np.load(f'jieba_{sys.argv[2]}_topn.npy')
 elif sys.argv[1] == 'ckiptagger':
     x = np.load(f'ckiptagger_{sys.argv[2]}_x.npy')
     y = np.load(f'ckiptagger_{sys.argv[2]}_y.npy')
-    a = np.losd(f'ckiptagger_{sys.argv[2]}_a.npy')
-    topn = np.load(f'ckiptagger_{sys.argv[2]}_topn.npy')
+    # a = np.losd(f'ckiptagger_{sys.argv[2]}_a.npy')
+    # topn = np.load(f'ckiptagger_{sys.argv[2]}_topn.npy')
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.5, random_state = 0, shuffle = True, stratify = y)
 
@@ -74,28 +72,31 @@ def hyperopt():
 
 
 def test():
-    for i in range(3):
+    for i in range(1):
         clf = RandomForestClassifier(n_estimators = 700, random_state = i, max_depth = 20, class_weight = 'balanced') #class_weight = 'balanced'
         clf.fit(x_train, y_train)
         #clf.fit(x_train_res, y_train_res)
         y_pred = clf.predict(x_test)
-        #print(confusion_matrix(y_test, y_pred, labels=[1, 2, 3]))
-        print(confusion_matrix(y_test, y_pred, labels=[1, 2, 3, 4, 5, 6, 7]))
+        cm = confusion_matrix(y_test, y_pred, labels=[1, 2, 3, 4, 5, 6, 7, 8, 9])
+        print(cm)
         print(accuracy_score(y_test, y_pred))
+        # save model
+        with open('/home/aa0918358122/git/tfidf/clf.pickle', 'wb') as f:
+            pickle.dump(clf, f)
 
 
 def draw_clustermap():
-    sn.set(font='monospace')
     article_dict = dict()
-    for i in range(len(a)):
-        article_dict[f'{y[i]}'] = pd.Series(a[i], topn)
+    label = ['民視', '中時', '公視', '中央通訊社', '自由時報', 'PChome', 'Nownews', '三立', 'Ettoday']
+    for i in range(len(cm)):
+        article_dict[f'{label[i]}'] = pd.Series(cm[i], label)
     df = pd.DataFrame(article_dict)
-    sn.clustermap(df)
+    sn.clustermap(df, metric='cosine', z_score=0)
 
 
 if '__main__' == __name__:
     # grid_search()
     # hyperopt()
     test()
-    draw_clustermap()
+    # draw_clustermap()
 
